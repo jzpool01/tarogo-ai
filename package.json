@@ -42,10 +42,10 @@
   "author": "TarogoAI",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jzpool/tarogo-ai.git"
+    "url": "git+https://github.com/jzpool01/tarogo-ai.git"
   },
   "bugs": {
-    "url": "https://github.com/jzpool/tarogo-ai/issues"
+    "url": "https://github.com/jzpool01/tarogo-ai/issues"
   },
   "homepage": "https://api.tarogo.com",
   "dependencies": {},
