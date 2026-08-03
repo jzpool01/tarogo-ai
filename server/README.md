@@ -24,12 +24,12 @@ npm run serve        # 或 node server/server.js
 ## 本地 Ollama 模型优先路由
 
 服务会通过 `http://localhost:11434`（可用 `OLLAMA_HOST` 修改）检查本机 Ollama，
-并缓存其模型清单（`GET /api/tags`）。
+并缓存**当前已加载到内存**的模型清单（`GET /api/ps`）。
 
 路由优先级：
 
 1. 请求显式带 `base_url` / `X-Base-URL` → 走用户指定地址（显式意图优先）
-2. 请求的模型在本地 Ollama 清单中（支持省略 tag，如请求 `llama3` 命中 `llama3:8b`）
+- 请求的模型在本地 Ollama **已加载清单**中（支持省略 tag，如请求 `llama3` 命中 `llama3:8b`）
    → 直接转发到 `{OLLAMA_HOST}/v1/*`（Ollama 内置 OpenAI 兼容端点）
 3. 否则 → 默认上游 `DEFAULT_BASE_URL`
 

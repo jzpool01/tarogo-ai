@@ -27,9 +27,9 @@ TAROGO_API_KEY=sk-demo TAROGO_MODEL=qwen3.5:2b npm run hello
 TAROGO_API_KEY=sk-demo TAROGO_MODEL=qwen3.5:2b npm run streaming
 ```
 
-查看本地已有模型：
+查看本地已加载模型：
 ```bash
-curl http://localhost:11434/api/tags
+curl http://localhost:11434/api/ps
 ```
 
 ## 环境变量说明

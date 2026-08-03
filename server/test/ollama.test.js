@@ -21,7 +21,7 @@ function resetState() {
   state.tagsCount = 0;
 }
 
-/** 模拟本地 Ollama 服务（/api/tags + OpenAI 兼容 /v1/*） */
+/** 模拟本地 Ollama 服务（/api/ps + OpenAI 兼容 /v1/*） */
 function startMockOllama() {
   const server = http.createServer((req, res) => {
     const chunks = [];
@@ -34,7 +34,7 @@ function startMockOllama() {
         body: Buffer.concat(chunks).toString('utf8'),
       });
 
-      if (req.url === '/api/tags' && req.method === 'GET') {
+      if (req.url === '/api/ps' && req.method === 'GET') {
         state.tagsCount += 1;
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(
@@ -263,7 +263,7 @@ test('/health 返回 Ollama 状态与本地模型清单', async (t) => {
   assert.ok(data.ollama.models.includes('qwen2.5:7b'));
 });
 
-test('模型清单带 TTL 缓存：多次探测只请求一次 /api/tags', async (t) => {
+test('模型清单带 TTL 缓存：多次探测只请求一次 /api/ps', async (t) => {
   resetState();
   const ollama = await start(startMockOllama());
   const client = new OllamaClient({
@@ -276,5 +276,5 @@ test('模型清单带 TTL 缓存：多次探测只请求一次 /api/tags', async
   await client.hasModel('llama3:8b');
   await client.hasModel('qwen2.5:7b');
   await client.isAvailable();
-  assert.equal(state.tagsCount, 1, '/api/tags 应只被请求一次');
+  assert.equal(state.tagsCount, 1, '/api/ps 应只被请求一次');
 });

@@ -147,16 +147,16 @@ const result = await tarogo.request('/v1/moderations', {
 
 SDK 内置本地模型优先策略：
 
-- 请求时自动探测本地 Ollama（`http://localhost:11434`，带缓存，失败静默回落）
-- **请求的模型在本地清单中**（支持省略 tag，如 `llama3` 命中 `llama3:8b`）→ 自动改走本地，零 API 费用、低延迟
-- 本地服务未启动 / 无该模型 → 自动回落默认上游 `https://api.tarogo.com`
+- 请求时自动探测本地 Ollama（`http://localhost:11434`，通过 `GET /api/ps` 检测**已加载到内存**的模型，带缓存，失败静默回落）
+- **请求的模型在本地已加载清单中**（支持省略 tag，如 `llama3` 命中 `llama3:8b`）→ 自动改走本地，零 API 费用、低延迟
+- 本地服务未启动 / 模型未加载 / 无该模型 → 自动回落默认上游 `https://api.tarogo.com`
 - 关闭方式：`new TarogoAI({ ollama: false })` 或 `{ ollama: { enabled: false } }`
 - 自定义地址：`{ ollama: { host: 'http://192.168.1.5:11434' } }`
 
 ```js
 const tarogo = new TarogoAI({ apiKey: '你的APIKey' }); // baseURL 不用填
 
-// 本地 Ollama 有 qwen3.5:2b 时 → 自动走本地；没有 → 走 https://api.tarogo.com
+// 本地 Ollama 已加载 qwen3.5:2b 时 → 自动走本地；否则 → 走 https://api.tarogo.com
 const res = await tarogo.chat.completions.create({
   model: 'qwen3.5:2b',
   messages: [{ role: 'user', content: '你好' }],

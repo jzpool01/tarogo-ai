@@ -2,7 +2,7 @@
 
 /**
  * Ollama 本地模型客户端：
- * - 通过 {host}/api/tags 检测 Ollama 服务是否存在并获取本地模型清单
+ * - 通过 {host}/api/ps 检测 Ollama 服务是否存在并获取**当前已加载**的模型清单
  * - 模型清单带 TTL 缓存，避免每个请求都探测 Ollama
  *
  * 路由语义：只要请求的模型在本地清单中，就直接转发到
@@ -31,18 +31,20 @@ class OllamaClient {
     this.cacheTTL = cacheTTL;
     this.timeout = timeout;
     this.fetchFn = fetchFn || (typeof globalThis !== 'undefined' ? globalThis.fetch : null);
-    this._models = null; // { names: string[], fetchedAt: number, ok: boolean }
   }
 
-  _fetchTags() {
+  _fetchPs() {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeout);
-    return this.fetchFn(`${this.host}/api/tags`, { signal: controller.signal }).finally(() =>
+    return this.fetchFn(`${this.host}/api/ps`, { signal: controller.signal }).finally(() =>
       clearTimeout(timer)
     );
   }
 
-  /** 带 TTL 缓存的 /api/tags 加载（成功/失败均缓存，避免频繁探测） */
+  /**
+   * 获取当前已加载到内存的本地模型清单（带 TTL 缓存）。
+   */
+  /** 带 TTL 缓存的 /api/ps 加载（成功/失败均缓存，避免频繁探测） */
   async _loadModels() {
     if (!this.enabled || !this.fetchFn) return [];
 
@@ -54,7 +56,7 @@ class OllamaClient {
     let ok = false;
     let names = [];
     try {
-      const res = await this._fetchTags();
+      const res = await this._fetchPs();
       ok = res.ok;
       if (ok) {
         const data = await res.json();

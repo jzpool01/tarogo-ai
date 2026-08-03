@@ -1,6 +1,6 @@
 {
   "name": "tarogo-ai",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "TarogoAI 官方 Node.js SDK —— OpenAI 兼容的 LLM 客户端，默认接入 https://api.tarogo.com，支持参数覆盖上游地址",
   "main": "src/index.js",
   "types": "types/index.d.ts",
