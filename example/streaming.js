@@ -15,7 +15,7 @@ async function main() {
   });
 
   const model = process.env.TAROGO_MODEL || 'qwen3.5:2b';
-  console.log(`🤖 流式对话 (${tarogo.baseURL}, ${model})\n`);
+  console.log(`📦 流式对话，模型: ${model}\n`);
 
   const stream = await tarogo.chat.completions.create({
     model,
@@ -25,6 +25,11 @@ async function main() {
     ],
     stream: true,
   });
+
+  const route = TarogoAI.routeOf(stream);
+  const target = route ? route.baseURL : tarogo.baseURL;
+  const mode = route && route.local ? '本地 Ollama' : '云端 API';
+  console.log(`🤖 实际连接: ${target}（${mode}）\n`);
 
   let text = '';
   let thinking = '';

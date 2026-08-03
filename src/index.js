@@ -14,6 +14,7 @@ const {
 
 module.exports = TarogoAI;
 module.exports.TarogoAI = TarogoAI;
+module.exports.routeOf = TarogoAI.routeOf;
 module.exports.TarogoAIError = TarogoAIError;
 module.exports.APIConnectionError = APIConnectionError;
 module.exports.BadRequestError = BadRequestError;

@@ -154,6 +154,51 @@ test('本地 Ollama 有该模型时自动路由到本地', async (t) => {
   assert.equal(req.authorization, 'Bearer sk-test');
 });
 
+test('routeOf 返回实际路由信息（本地命中）', async (t) => {
+  resetState();
+  const ollama = await startMockServer();
+  const client = new TarogoAI({
+    apiKey: 'sk-test',
+    baseURL: 'http://127.0.0.1:1',
+    ollama: { host: ollama.url, cacheTTL: 10000, timeout: 500 },
+  });
+  t.after(() => stop(ollama.server));
+
+  const res = await client.chat.completions.create({
+    model: 'llama3:8b',
+    messages: [{ role: 'user', content: 'hi' }],
+  });
+  const route = TarogoAI.routeOf(res);
+  assert.ok(route, '应能读取路由信息');
+  assert.equal(route.local, true);
+  assert.equal(route.baseURL, ollama.url);
+  // 路由信息应为非枚举属性，不污染 JSON 序列化
+  assert.deepEqual(
+    Object.keys(res).sort(),
+    ['choices', 'id', 'object', 'created', 'model'].sort()
+  );
+});
+
+test('routeOf 返回实际路由信息（云端回落）', async (t) => {
+  resetState();
+  const upstream = await startMockServer();
+  const client = new TarogoAI({
+    apiKey: 'sk-test',
+    baseURL: upstream.url,
+    ollama: { host: 'http://127.0.0.1:1', timeout: 200 },
+  });
+  t.after(() => stop(upstream.server));
+
+  const res = await client.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [{ role: 'user', content: 'hi' }],
+  });
+  const route = TarogoAI.routeOf(res);
+  assert.ok(route);
+  assert.equal(route.local, false);
+  assert.equal(route.baseURL, upstream.url);
+});
+
 test('本地 Ollama 无该模型时回落默认上游', async (t) => {
   resetState();
   const ollama = await startMockServer();

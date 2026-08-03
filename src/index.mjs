@@ -1,5 +1,7 @@
 import TarogoAI from './index.js';
 
+const { routeOf } = TarogoAI;
+
 const {
   TarogoAIError,
   APIConnectionError,
@@ -13,6 +15,7 @@ const {
 
 export default TarogoAI;
 export {
+  routeOf,
   TarogoAIError,
   APIConnectionError,
   BadRequestError,

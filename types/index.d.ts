@@ -201,6 +201,13 @@ export class InternalServerError extends TarogoAIError {}
 
 export type AsyncStream<T> = AsyncGenerator<T, void, unknown>;
 
+export interface RouteInfo {
+  /** 本次请求实际使用的上游地址（本地命中时为 Ollama 地址） */
+  baseURL: string;
+  /** 是否为本地 Ollama 命中 */
+  local: boolean;
+}
+
 export class TarogoAI {
   constructor(options?: TarogoAIOptions);
 
@@ -247,6 +254,12 @@ export class TarogoAI {
     body?: Record<string, unknown> | null,
     options?: RequestOptions
   ): Promise<T>;
+
+  /** 读取一次请求实际路由信息（结果对象或流上附带，非枚举属性） */
+  static routeOf(result: unknown): RouteInfo | null;
 }
+
+/** 读取一次请求实际路由信息 */
+export function routeOf(result: unknown): RouteInfo | null;
 
 export default TarogoAI;

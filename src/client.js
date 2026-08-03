@@ -12,6 +12,9 @@ const { OllamaClient } = require('./ollama');
 const DEFAULT_BASE_URL = 'https://api.tarogo.com';
 const DEFAULT_TIMEOUT = 10 * 60 * 1000; // 10 分钟
 
+/** 挂在请求结果上的路由信息（非枚举属性，不污染 JSON）：{ baseURL, local } */
+const TAROGO_ROUTE = Symbol('tarogo.route');
+
 /**
  * 归一化基础地址：
  * - 去掉末尾斜杠
@@ -144,6 +147,7 @@ class TarogoAI {
     delete payload.api_key;
 
     let baseURL;
+    let local = false;
     if (bodyBaseUrl) {
       baseURL = bodyBaseUrl;
     } else if (requestOptions.baseURL) {
@@ -156,6 +160,7 @@ class TarogoAI {
         (await this.ollama.hasModel(model))
       ) {
         baseURL = this.ollama.host;
+        local = true;
       } else {
         baseURL = this.baseURL;
       }
@@ -219,11 +224,28 @@ class TarogoAI {
       throw createError(response.status, message, errorBody, response.headers);
     }
 
+    const routeInfo = { baseURL: normalizeBaseURL(baseURL), local };
+
     if (isStreaming) {
-      return createStream(response);
+      const stream = createStream(response);
+      Object.defineProperty(stream, TAROGO_ROUTE, { value: routeInfo });
+      return stream;
     }
-    return response.json();
+    const data = await response.json();
+    Object.defineProperty(data, TAROGO_ROUTE, { value: routeInfo });
+    return data;
+  }
+
+  /**
+   * 读取一次请求实际路由到哪里：
+   * - 本地命中：{ baseURL: 'http://localhost:11434', local: true }
+   * - 云端/自定义：{ baseURL: 'https://api.tarogo.com', local: false }
+   * @param {*} result chat.completions.create 等的返回值（含流）
+   * @returns {{ baseURL: string, local: boolean }|null}
+   */
+  static routeOf(result) {
+    return result && result[TAROGO_ROUTE] ? result[TAROGO_ROUTE] : null;
   }
 }
 
-module.exports = { TarogoAI, normalizeBaseURL };
+module.exports = { TarogoAI, normalizeBaseURL, TAROGO_ROUTE };

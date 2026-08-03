@@ -20,8 +20,8 @@ async function main() {
   });
 
   const model = process.env.TAROGO_MODEL || 'qwen3.5:2b';
-  console.log(`🤖 连接 TarogoAI: ${tarogo.baseURL}`);
-  console.log(`📦 使用模型: ${model}\n`);
+  console.log(`📦 使用模型: ${model}`);
+  console.log('🤖 正在请求（本地有模型自动走本地）...\n');
 
   const completion = await tarogo.chat.completions.create({
     model,
@@ -31,6 +31,11 @@ async function main() {
     ],
   });
 
+  // 读取实际路由：本地命中显示本地连接，否则显示云端
+  const route = TarogoAI.routeOf(completion);
+  const target = route ? route.baseURL : tarogo.baseURL;
+  const mode = route && route.local ? '本地 Ollama' : '云端 API';
+  console.log(`🤖 实际连接: ${target}（${mode}）`);
   console.log('💬 回复：');
   console.log(completion.choices[0].message.content);
   console.log('\n✅ Hello World 示例运行完成！');
