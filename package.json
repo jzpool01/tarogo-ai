@@ -1,0 +1,57 @@
+{
+  "name": "tarogo-ai",
+  "version": "1.0.0",
+  "description": "TarogoAI 官方 Node.js SDK —— OpenAI 兼容的 LLM 客户端，默认接入 https://api.tarogo.com，支持参数覆盖上游地址",
+  "main": "src/index.js",
+  "types": "types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./src/index.mjs",
+      "require": "./src/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "types",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test",
+    "serve": "node server/server.js",
+    "dev:serve": "node --watch server/server.js",
+    "prepublishOnly": "npm test"
+  },
+  "keywords": [
+    "tarogo",
+    "tarogoai",
+    "llm",
+    "openai",
+    "chat",
+    "completion",
+    "sdk",
+    "api",
+    "ai"
+  ],
+  "license": "MIT",
+  "author": "TarogoAI",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tarogo/tarogo-ai.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tarogo/tarogo-ai/issues"
+  },
+  "homepage": "https://api.tarogo.com",
+  "dependencies": {},
+  "devDependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}
