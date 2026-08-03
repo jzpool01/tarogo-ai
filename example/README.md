@@ -20,11 +20,11 @@ TAROGO_API_KEY=你的APIKey npm run hello
 TAROGO_API_KEY=你的APIKey npm run streaming
 ```
 
-指定模型（本地 Ollama 有该模型时自动走本地）：
+默认模型为 `qwen3.5:2b`（本地 Ollama 已加载时自动走本地），也可以指定其他模型：
 
 ```bash
-TAROGO_API_KEY=sk-demo TAROGO_MODEL=qwen3.5:2b npm run hello
-TAROGO_API_KEY=sk-demo TAROGO_MODEL=qwen3.5:2b npm run streaming
+TAROGO_MODEL=其他模型名 npm run hello
+TAROGO_MODEL=其他模型名 npm run streaming
 ```
 
 查看本地已加载模型：
@@ -37,7 +37,7 @@ curl http://localhost:11434/api/ps
 | 变量 | 说明 | 默认值 |
 | --- | --- | --- |
 | `TAROGO_API_KEY` | API Key（必填，演示可用任意非空值） | `sk-demo` |
-| `TAROGO_MODEL` | 使用的模型名 | `gpt-4o` |
+| `TAROGO_MODEL` | 使用的模型名 | `qwen3.5:2b` |
 
 ## 文件说明
 

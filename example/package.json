@@ -8,6 +8,6 @@
     "streaming": "node streaming.js"
   },
   "dependencies": {
-    "tarogo-ai": "^1.1.0"
+    "tarogo-ai": "^1.3.0"
   }
 }

@@ -4,8 +4,8 @@
  * TarogoAI 流式输出示例
  *
  * 运行方式：
- *   TAROGO_API_KEY=你的APIKey TAROGO_MODEL=qwen3.5:2b node streaming.js
- *   （baseURL 无需填写；本地 Ollama 有该模型时自动走本地）
+ *   node streaming.js
+ *   （只需 API Key；默认模型 qwen3.5:2b，本地 Ollama 已加载时自动走本地）
  */
 const TarogoAI = require('tarogo-ai');
 
@@ -14,7 +14,7 @@ async function main() {
     apiKey: process.env.TAROGO_API_KEY || 'sk-demo',
   });
 
-  const model = process.env.TAROGO_MODEL || 'gpt-4o';
+  const model = process.env.TAROGO_MODEL || 'qwen3.5:2b';
   console.log(`🤖 流式对话 (${tarogo.baseURL}, ${model})\n`);
 
   const stream = await tarogo.chat.completions.create({

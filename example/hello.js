@@ -5,10 +5,10 @@
  *
  * 运行方式:
  *   只需一个 API Key，baseURL 无需填写（默认 https://api.tarogo.com）：
- *     TAROGO_API_KEY=你的APIKey TAROGO_MODEL=qwen3.5:2b node hello.js
+ *     node hello.js
  *
  *   SDK 会自动根据模型名路由：
- *   - 本地 Ollama 已启动且包含该模型 → 自动走本地（零成本）
+ *   - 本地 Ollama 已加载该模型（默认 qwen3.5:2b）→ 自动走本地（零成本）
  *   - 本地没有 → 自动走默认上游 https://api.tarogo.com
  */
 const TarogoAI = require('tarogo-ai');
@@ -19,7 +19,7 @@ async function main() {
     apiKey: process.env.TAROGO_API_KEY || 'sk-demo',
   });
 
-  const model = process.env.TAROGO_MODEL || 'gpt-4o';
+  const model = process.env.TAROGO_MODEL || 'qwen3.5:2b';
   console.log(`🤖 连接 TarogoAI: ${tarogo.baseURL}`);
   console.log(`📦 使用模型: ${model}\n`);
 
