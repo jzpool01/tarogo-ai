@@ -4,17 +4,14 @@
  * TarogoAI 流式输出示例
  *
  * 运行方式：
- *   TAROGO_API_KEY=你的APIKey node streaming.js
- *   或（本地代理 + Ollama）：
- *   TAROGO_API_KEY=sk-demo TAROGO_PROXY_URL=http://localhost:3000/v1 \
- *   TAROGO_MODEL=qwen3.5:2b node streaming.js
+ *   TAROGO_API_KEY=你的APIKey TAROGO_MODEL=qwen3.5:2b node streaming.js
+ *   （baseURL 无需填写；本地 Ollama 有该模型时自动走本地）
  */
 const TarogoAI = require('tarogo-ai');
 
 async function main() {
   const tarogo = new TarogoAI({
     apiKey: process.env.TAROGO_API_KEY || 'sk-demo',
-    baseURL: process.env.TAROGO_PROXY_URL,
   });
 
   const model = process.env.TAROGO_MODEL || 'gpt-4o';

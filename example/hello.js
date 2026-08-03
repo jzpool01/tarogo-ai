@@ -3,22 +3,20 @@
 /**
  * TarogoAI Hello World 示例
  *
- * 运行方式（任选其一）:
- *   方式一：直连线上服务（默认 https://api.tarogo.com）
- *     TAROGO_API_KEY=你的APIKey node hello.js
+ * 运行方式:
+ *   只需一个 API Key，baseURL 无需填写（默认 https://api.tarogo.com）：
+ *     TAROGO_API_KEY=你的APIKey TAROGO_MODEL=qwen3.5:2b node hello.js
  *
- *   方式二：本地代理 + 本地 Ollama 演示（命中本地模型，零成本）
- *     先启动代理：cd .. && npm run serve
- *     TAROGO_API_KEY=sk-demo TAROGO_PROXY_URL=http://localhost:3000/v1 \
- *     TAROGO_MODEL=qwen3.5:2b node hello.js
+ *   SDK 会自动根据模型名路由：
+ *   - 本地 Ollama 已启动且包含该模型 → 自动走本地（零成本）
+ *   - 本地没有 → 自动走默认上游 https://api.tarogo.com
  */
 const TarogoAI = require('tarogo-ai');
 
 async function main() {
-  // 只需一个 API Key；不传 baseURL 时默认连 https://api.tarogo.com
+  // 只需一个 API Key；baseURL 不填，默认 https://api.tarogo.com
   const tarogo = new TarogoAI({
     apiKey: process.env.TAROGO_API_KEY || 'sk-demo',
-    baseURL: process.env.TAROGO_PROXY_URL, // 可选：指向本地代理或其他 OpenAI 兼容地址
   });
 
   const model = process.env.TAROGO_MODEL || 'gpt-4o';

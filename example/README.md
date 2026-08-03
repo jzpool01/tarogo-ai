@@ -2,6 +2,10 @@
 
 本目录包含可运行的示例，演示如何使用 `tarogo-ai` SDK。
 
+SDK 的 `baseURL` 无需填写（默认 `https://api.tarogo.com`），并且会**自动根据模型名路由到本地 Ollama**：
+本地 Ollama 已启动且包含请求的模型 → 直接走本地（零成本、低延迟）；
+否则自动回落默认上游。
+
 ## 安装
 
 ```bash
@@ -9,36 +13,23 @@ cd example
 npm install
 ```
 
-## 方式一：直连线上服务（默认 `https://api.tarogo.com`）
-
-只需一个 API Key：
+## 运行（只需一个 API Key）
 
 ```bash
 TAROGO_API_KEY=你的APIKey npm run hello
 TAROGO_API_KEY=你的APIKey npm run streaming
 ```
 
-## 方式二：本地代理 + 本地 Ollama 演示（推荐体验）
-
-仓库自带 OpenAI 兼容代理服务，并内置**本地 Ollama 优先路由**：
-只要请求的模型在本地 Ollama 清单中，就直接走本机推理，零 API 费用。
+指定模型（本地 Ollama 有该模型时自动走本地）：
 
 ```bash
-# 1. 先在仓库根目录启动代理服务
-cd ..
-npm run serve
-
-# 2. 另开终端，运行示例（TAROGO_MODEL 换成你本地已有的模型名）
-cd example
-TAROGO_API_KEY=sk-demo TAROGO_PROXY_URL=http://localhost:3000/v1 TAROGO_MODEL=qwen3.5:2b npm run hello
-TAROGO_API_KEY=sk-demo TAROGO_PROXY_URL=http://localhost:3000/v1 TAROGO_MODEL=qwen3.5:2b npm run streaming
+TAROGO_API_KEY=sk-demo TAROGO_MODEL=qwen3.5:2b npm run hello
+TAROGO_API_KEY=sk-demo TAROGO_MODEL=qwen3.5:2b npm run streaming
 ```
 
 查看本地已有模型：
 ```bash
 curl http://localhost:11434/api/tags
-# 或通过代理健康检查
-curl http://localhost:3000/health
 ```
 
 ## 环境变量说明
@@ -46,7 +37,6 @@ curl http://localhost:3000/health
 | 变量 | 说明 | 默认值 |
 | --- | --- | --- |
 | `TAROGO_API_KEY` | API Key（必填，演示可用任意非空值） | `sk-demo` |
-| `TAROGO_PROXY_URL` | 代理/服务地址 | 不设则用 `https://api.tarogo.com` |
 | `TAROGO_MODEL` | 使用的模型名 | `gpt-4o` |
 
 ## 文件说明

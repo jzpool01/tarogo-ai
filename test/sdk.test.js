@@ -10,6 +10,10 @@ const { normalizeBaseURL } = require('../src/client');
 
 const state = { requests: [] };
 
+function resetState() {
+  state.requests.length = 0;
+}
+
 /** 模拟 OpenAI 兼容上游服务 */
 function startMock() {
   const server = http.createServer((req, res) => {
@@ -29,6 +33,13 @@ function startMock() {
         parsed = JSON.parse(raw || '{}');
       } catch {
         // ignore
+      }
+
+      // Ollama 模型清单（本地路由探测用）
+      if (req.url === '/api/tags' && req.method === 'GET') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ models: [{ name: 'llama3:8b' }, { name: 'qwen2.5:7b' }] }));
+        return;
       }
 
       // 401 场景
@@ -118,6 +129,90 @@ test('缺少 API Key 时抛出 AuthenticationError', async () => {
     () => client.chat.completions.create({ model: 'gpt-4o', messages: [] }),
     (err) => err instanceof TarogoAI.AuthenticationError
   );
+});
+
+// ---------- 本地 Ollama 自动路由 ----------
+
+test('本地 Ollama 有该模型时自动路由到本地', async (t) => {
+  resetState();
+  const ollama = await startMockServer();
+  // 默认上游故意指向不可达端口：若未路由到本地则必然失败
+  const client = new TarogoAI({
+    apiKey: 'sk-test',
+    baseURL: 'http://127.0.0.1:1',
+    ollama: { host: ollama.url, cacheTTL: 10000, timeout: 500 },
+  });
+  t.after(() => stop(ollama.server));
+
+  const res = await client.chat.completions.create({
+    model: 'llama3:8b',
+    messages: [{ role: 'user', content: 'hi' }],
+  });
+  assert.equal(res.choices[0].message.content, 'pong');
+  const req = state.requests.at(-1);
+  assert.equal(req.url, '/v1/chat/completions');
+  assert.equal(req.authorization, 'Bearer sk-test');
+});
+
+test('本地 Ollama 无该模型时回落默认上游', async (t) => {
+  resetState();
+  const ollama = await startMockServer();
+  const upstream = await startMockServer();
+  const client = new TarogoAI({
+    apiKey: 'sk-test',
+    baseURL: upstream.url,
+    ollama: { host: ollama.url, cacheTTL: 10000, timeout: 500 },
+  });
+  t.after(async () => {
+    await stop(ollama.server);
+    await stop(upstream.server);
+  });
+
+  const res = await client.chat.completions.create({
+    model: 'gpt-4o', // 本地清单里没有
+    messages: [{ role: 'user', content: 'hi' }],
+  });
+  assert.equal(res.choices[0].message.content, 'pong');
+  assert.equal(state.requests.at(-1).url, '/v1/chat/completions');
+});
+
+test('ollama: false 关闭本地路由', async (t) => {
+  resetState();
+  const ollama = await startMockServer();
+  const upstream = await startMockServer();
+  const client = new TarogoAI({
+    apiKey: 'sk-test',
+    baseURL: upstream.url,
+    ollama: false, // 关闭本地路由
+  });
+  t.after(async () => {
+    await stop(ollama.server);
+    await stop(upstream.server);
+  });
+
+  const res = await client.chat.completions.create({
+    model: 'llama3:8b', // 本地清单有，但路由已关闭
+    messages: [{ role: 'user', content: 'hi' }],
+  });
+  assert.equal(res.choices[0].message.content, 'pong');
+  assert.equal(state.requests.at(-1).url, '/v1/chat/completions');
+});
+
+test('省略 tag 的模型名命中本地（llama3 → llama3:8b）', async (t) => {
+  resetState();
+  const ollama = await startMockServer();
+  const client = new TarogoAI({
+    apiKey: 'sk-test',
+    baseURL: 'http://127.0.0.1:1',
+    ollama: { host: ollama.url, cacheTTL: 10000, timeout: 500 },
+  });
+  t.after(() => stop(ollama.server));
+
+  const res = await client.chat.completions.create({
+    model: 'llama3',
+    messages: [{ role: 'user', content: 'hi' }],
+  });
+  assert.equal(res.choices[0].message.content, 'pong');
 });
 
 // ---------- 请求与转发 ----------

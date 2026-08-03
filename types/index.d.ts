@@ -4,7 +4,7 @@
 export interface TarogoAIOptions {
   /** API Key（也可通过环境变量 TAROGO_API_KEY 提供） */
   apiKey?: string;
-  /** 上游基础地址，默认 https://api.tarogo.com（无需带 /v1） */
+  /** 上游基础地址，默认 https://api.tarogo.com（无需带 /v1）；仅需切换到其他云端时才需要填 */
   baseURL?: string;
   /** 请求超时（毫秒），默认 600000（10 分钟） */
   timeout?: number;
@@ -12,6 +12,23 @@ export interface TarogoAIOptions {
   defaultHeaders?: Record<string, string>;
   /** 自定义 fetch 实现（默认使用全局 fetch） */
   fetch?: typeof globalThis.fetch;
+  /**
+   * 本地 Ollama 自动路由配置（默认开启）：
+   * 请求的模型命中本地 Ollama 清单时自动走本地，否则回落默认上游。
+   * 传 false 可关闭。
+   */
+  ollama?: OllamaOptions | false;
+}
+
+export interface OllamaOptions {
+  /** 是否启用本地路由，默认 true */
+  enabled?: boolean;
+  /** 本地 Ollama 地址，默认 http://localhost:11434 */
+  host?: string;
+  /** 模型清单缓存毫秒，默认 10000 */
+  cacheTTL?: number;
+  /** 探测超时毫秒，默认 800 */
+  timeout?: number;
 }
 
 export interface RequestOptions {

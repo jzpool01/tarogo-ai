@@ -7,6 +7,7 @@ const {
   createError,
 } = require('./errors');
 const { createStream } = require('./stream');
+const { OllamaClient } = require('./ollama');
 
 const DEFAULT_BASE_URL = 'https://api.tarogo.com';
 const DEFAULT_TIMEOUT = 10 * 60 * 1000; // 10 分钟
@@ -28,6 +29,8 @@ function normalizeBaseURL(input) {
  * TarogoAI 客户端 —— OpenAI 兼容的 LLM SDK。
  *
  * 只需传入 API Key，默认请求 https://api.tarogo.com；
+ * 请求时会根据模型名自动检测本地 Ollama：本地服务已启动且包含该模型时，
+ * 自动改走本地（零成本、低延迟）；否则回落默认上游。
  * 也支持通过 baseURL（构造/请求级）或请求 body 中的 base_url 参数覆盖上游地址。
  */
 class TarogoAI {
@@ -38,6 +41,8 @@ class TarogoAI {
    * @param {number} [options.timeout] 请求超时（毫秒），默认 10 分钟
    * @param {HeadersInit} [options.defaultHeaders] 附加到每个请求的默认请求头
    * @param {typeof fetch} [options.fetch] 自定义 fetch 实现
+   * @param {{enabled?: boolean, host?: string, cacheTTL?: number, timeout?: number}|false} [options.ollama]
+   *   本地 Ollama 自动路由配置，默认开启；传 false 可关闭
    */
   constructor(options = {}) {
     this.apiKey = options.apiKey || process.env.TAROGO_API_KEY || '';
@@ -49,6 +54,11 @@ class TarogoAI {
         ? globalThis.fetch.bind(globalThis)
         : null);
     this.defaultHeaders = { ...(options.defaultHeaders || {}) };
+    this.ollama = new OllamaClient({
+      ...(options.ollama && typeof options.ollama === 'object' ? options.ollama : {}),
+      enabled: options.ollama === false ? false : true,
+      fetchFn: this.fetchFn,
+    });
 
     // OpenAI 风格的命名空间
     this.chat = {
@@ -107,8 +117,8 @@ class TarogoAI {
    * 上游地址优先级（高 → 低）：
    * 1. body.base_url / body.baseUrl（参数覆盖，自动剥离，不透传给上游）
    * 2. requestOptions.baseURL
-   * 3. 构造时 baseURL
-   * 4. 默认 https://api.tarogo.com
+   * 3. 本地 Ollama 命中（模型在本地清单且服务可用，自动路由）
+   * 4. 构造时 baseURL（默认 https://api.tarogo.com）
    *
    * @param {{ path: string, method: string, body: object|null, requestOptions?: object }} params
    * @returns {Promise<object|AsyncGenerator>} stream:true 时返回异步迭代器
@@ -123,18 +133,33 @@ class TarogoAI {
       throw new TarogoAIError('当前环境不支持 fetch（需要 Node.js >= 18 或现代浏览器）。');
     }
 
-    // 地址覆盖：body.base_url > requestOptions.baseURL > this.baseURL
-    let baseURL = this.baseURL;
+    // 地址覆盖：body.base_url > requestOptions.baseURL > 本地 Ollama > this.baseURL
     const payload = { ...(body || {}) };
-    if (typeof payload.base_url === 'string' && payload.base_url.trim()) {
-      baseURL = payload.base_url;
-    } else if (typeof payload.baseUrl === 'string' && payload.baseUrl.trim()) {
-      baseURL = payload.baseUrl;
-    }
+    const bodyBaseUrl =
+      (typeof payload.base_url === 'string' && payload.base_url.trim()) ||
+      (typeof payload.baseUrl === 'string' && payload.baseUrl.trim()) ||
+      '';
     delete payload.base_url;
     delete payload.baseUrl;
     delete payload.api_key;
-    if (requestOptions.baseURL) baseURL = requestOptions.baseURL;
+
+    let baseURL;
+    if (bodyBaseUrl) {
+      baseURL = bodyBaseUrl;
+    } else if (requestOptions.baseURL) {
+      baseURL = requestOptions.baseURL;
+    } else {
+      const model = payload.model;
+      if (
+        this.ollama.enabled &&
+        typeof model === 'string' &&
+        (await this.ollama.hasModel(model))
+      ) {
+        baseURL = this.ollama.host;
+      } else {
+        baseURL = this.baseURL;
+      }
+    }
 
     const url = `${normalizeBaseURL(baseURL)}${path}`;
 

@@ -134,29 +134,40 @@ const result = await tarogo.request('/v1/moderations', {
 
 ## 覆盖上游地址（三种方式，按优先级）
 
-默认上游为 `https://api.tarogo.com`，可通过以下方式覆盖（高 → 低）：
+默认上游为 `https://api.tarogo.com`，**baseURL 无需填写**。SDK 会自动路由（高 → 低）：
 
 | 优先级 | 方式 | 示例 |
 | --- | --- | --- |
 | 1 | 请求体 `base_url` | `create({ ..., base_url: 'https://x.com' })` |
 | 2 | 请求级 `options.baseURL` | `create(params, { baseURL: 'https://x.com' })` |
-| 3 | 构造参数 `baseURL` | `new TarogoAI({ baseURL: 'https://x.com' })` |
+| 3 | **本地 Ollama 自动路由** | 模型在本地清单中时自动走 `localhost:11434` |
+| 4 | 默认地址 | `https://api.tarogo.com` |
+
+## 本地 Ollama 自动路由（默认开启）
+
+SDK 内置本地模型优先策略：
+
+- 请求时自动探测本地 Ollama（`http://localhost:11434`，带缓存，失败静默回落）
+- **请求的模型在本地清单中**（支持省略 tag，如 `llama3` 命中 `llama3:8b`）→ 自动改走本地，零 API 费用、低延迟
+- 本地服务未启动 / 无该模型 → 自动回落默认上游 `https://api.tarogo.com`
+- 关闭方式：`new TarogoAI({ ollama: false })` 或 `{ ollama: { enabled: false } }`
+- 自定义地址：`{ ollama: { host: 'http://192.168.1.5:11434' } }`
 
 ```js
-// 方式 1：请求体参数覆盖（与 TarogoAI 服务端协议一致）
-const res = await tarogo.chat.completions.create({
-  model: 'gpt-4o',
-  messages: [{ role: 'user', content: 'hi' }],
-  base_url: 'https://another-llm-provider.example.com',
-});
+const tarogo = new TarogoAI({ apiKey: '你的APIKey' }); // baseURL 不用填
 
-// 方式 2：请求级 options 覆盖
-const res2 = await tarogo.chat.completions.create(params, {
-  baseURL: 'https://another-llm-provider.example.com',
+// 本地 Ollama 有 qwen3.5:2b 时 → 自动走本地；没有 → 走 https://api.tarogo.com
+const res = await tarogo.chat.completions.create({
+  model: 'qwen3.5:2b',
+  messages: [{ role: 'user', content: '你好' }],
 });
 ```
 
-> 覆盖地址的 `base_url` / `baseUrl` / `api_key` 字段会被 SDK 自动剥离，不会透传给上游。
+> 说明：`base_url` / `baseUrl` / `api_key` 字段会被 SDK 自动剥离，不会透传给上游。
+
+### 兼容性说明
+
+若部署了仓库自带的代理服务（`server/`），它同样内置本地优先路由，其他 OpenAI 客户端（curl、官方 openai SDK）经过代理也能享受本地模型。
 
 ## 错误处理
 
