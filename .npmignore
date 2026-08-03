@@ -1,6 +1,5 @@
 node_modules/
 test/
-server/
 .env
 .git/
 .DS_Store

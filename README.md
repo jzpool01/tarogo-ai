@@ -165,10 +165,6 @@ const res = await tarogo.chat.completions.create({
 
 > 说明：`base_url` / `baseUrl` / `api_key` 字段会被 SDK 自动剥离，不会透传给上游。
 
-### 兼容性说明
-
-若部署了仓库自带的代理服务（`server/`），它同样内置本地优先路由，其他 OpenAI 客户端（curl、官方 openai SDK）经过代理也能享受本地模型。
-
 ## 错误处理
 
 所有非 2xx 响应都会抛出对应类型的错误（均继承自 `TarogoAIError`）：
@@ -245,12 +241,13 @@ git push origin v1.0.1 # push 后自动：测试 → npm publish
 
 1. 将代码推送到 GitHub 仓库（Actions 需要代码在 GitHub 上才能运行）
 2. 在仓库 **Settings → Secrets and variables → Actions** 添加 `NPM_TOKEN`
-   （npm 账号生成方式：`npm token create --read-only` 生成自动化 token）
+   （npm 网页生成：Access Tokens → Generate New Token → 类型选 Granular Access Token，
+   Permissions 选 **Read and write**、勾选 **Bypass two-factor authentication**、选择 All Packages）
 3. 确认 `package.json` 中 `repository` / `bugs` 字段为真实仓库地址
 
 ### 发布内容
 
-发布内容由 `package.json` 的 `files` 白名单控制（`src/`、`types/`、`README.md`、`LICENSE`），不含测试与内部服务代码。
+发布内容由 `package.json` 的 `files` 白名单控制（`src/`、`types/`、`README.md`、`LICENSE`），不含测试代码。
 
 ## 目录结构
 
@@ -261,15 +258,10 @@ git push origin v1.0.1 # push 后自动：测试 → npm publish
 │   ├── index.mjs        # ESM 入口
 │   ├── client.js        # TarogoAI 客户端核心
 │   ├── errors.js        # 错误类型
-│   └── stream.js        # SSE 流式解析
+│   ├── stream.js        # SSE 流式解析
+│   └── ollama.js        # 本地 Ollama 检测（/api/ps）
 ├── types/index.d.ts     # TypeScript 类型声明（发布）
 ├── test/sdk.test.js     # SDK 测试
-├── server/              # 内部代理服务（部署 api.tarogo.com 用，不随包发布）
-│   ├── server.js
-│   ├── app.js
-│   ├── proxy.js
-│   ├── config.js
-│   └── test/
 ├── LICENSE
 └── package.json
 ```
