@@ -35,8 +35,8 @@ function startMock() {
         // ignore
       }
 
-      // Ollama 已加载模型清单（本地路由探测用）
-      if (req.url === '/api/ps' && req.method === 'GET') {
+      // Ollama 已安装模型清单（本地路由探测用）
+      if (req.url === '/api/tags' && req.method === 'GET') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ models: [{ name: 'llama3:8b' }, { name: 'qwen2.5:7b' }] }));
         return;

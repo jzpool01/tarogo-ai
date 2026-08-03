@@ -20,16 +20,16 @@ TAROGO_API_KEY=你的APIKey npm run hello
 TAROGO_API_KEY=你的APIKey npm run streaming
 ```
 
-默认模型为 `qwen3.5:2b`（本地 Ollama 已加载时自动走本地），也可以指定其他模型：
+默认模型为 `qwen3.5:2b`（本地 Ollama 已安装该模型时自动走本地，Ollama 自动加载），也可以指定其他模型：
 
 ```bash
 TAROGO_MODEL=其他模型名 npm run hello
 TAROGO_MODEL=其他模型名 npm run streaming
 ```
 
-查看本地已加载模型：
+查看本地已安装模型：
 ```bash
-curl http://localhost:11434/api/ps
+curl http://localhost:11434/api/tags
 ```
 
 ## 环境变量说明

@@ -147,9 +147,9 @@ const result = await tarogo.request('/v1/moderations', {
 
 SDK 内置本地模型优先策略：
 
-- 请求时自动探测本地 Ollama（`http://localhost:11434`，通过 `GET /api/ps` 检测**已加载到内存**的模型，带缓存，失败静默回落）
-- **请求的模型在本地已加载清单中**（支持省略 tag，如 `llama3` 命中 `llama3:8b`）→ 自动改走本地，零 API 费用、低延迟
-- 本地服务未启动 / 模型未加载 / 无该模型 → 自动回落默认上游 `https://api.tarogo.com`
+- 请求时自动探测本地 Ollama（`http://localhost:11434`，通过 `GET /api/tags` 检测**已安装**的模型，带缓存，失败静默回落）
+- **请求的模型在本地已安装清单中**（支持省略 tag，如 `llama3` 命中 `llama3:8b`）→ 自动改走本地（Ollama 自动加载），零 API 费用、低延迟
+- 本地服务未启动 / 无该模型 → 自动回落默认上游 `https://api.tarogo.com`
 - 关闭方式：`new TarogoAI({ ollama: false })` 或 `{ ollama: { enabled: false } }`
 - 自定义地址：`{ ollama: { host: 'http://192.168.1.5:11434' } }`
 
@@ -259,7 +259,7 @@ git push origin v1.0.1 # push 后自动：测试 → npm publish
 │   ├── client.js        # TarogoAI 客户端核心
 │   ├── errors.js        # 错误类型
 │   ├── stream.js        # SSE 流式解析
-│   └── ollama.js        # 本地 Ollama 检测（/api/ps）
+│   └── ollama.js        # 本地 Ollama 检测（/api/tags）
 ├── types/index.d.ts     # TypeScript 类型声明（发布）
 ├── test/sdk.test.js     # SDK 测试
 ├── LICENSE

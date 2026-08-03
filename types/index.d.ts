@@ -14,7 +14,7 @@ export interface TarogoAIOptions {
   fetch?: typeof globalThis.fetch;
   /**
    * 本地 Ollama 自动路由配置（默认开启）：
-   * 请求的模型命中本地 Ollama 已加载清单（/api/ps）时自动走本地，否则回落默认上游。
+   * 请求的模型命中本地 Ollama 已安装清单（/api/tags）时自动走本地，否则回落默认上游。
    * 传 false 可关闭。
    */
   ollama?: OllamaOptions | false;

@@ -2,8 +2,9 @@
 
 /**
  * SDK 内置的本地 Ollama 检测器：
- * - 请求前通过 {host}/api/ps 探测本地 Ollama，并获取**当前已加载到内存**的模型清单（带缓存）
- * - 请求的模型命中已加载清单时，SDK 自动改走本地，否则回落到默认上游
+ * - 请求前通过 {host}/api/tags 探测本地 Ollama 是否运行，并获取**已安装**的模型清单（带缓存）
+ * - 请求的模型命中本地清单时，SDK 自动改走本地（Ollama 会在首次请求时自动加载模型），
+ *   否则回落到默认上游
  */
 class OllamaClient {
   /**
@@ -29,15 +30,15 @@ class OllamaClient {
     this._models = null; // { names: string[], fetchedAt: number, ok: boolean }
   }
 
-  _fetchPs() {
+  _fetchTags() {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeout);
-    return this.fetchFn(`${this.host}/api/ps`, { signal: controller.signal }).finally(() =>
+    return this.fetchFn(`${this.host}/api/tags`, { signal: controller.signal }).finally(() =>
       clearTimeout(timer)
     );
   }
 
-  /** 带缓存的 /api/ps 加载；失败也缓存，避免每次请求都探测 */
+  /** 带缓存的 /api/tags 加载；失败也缓存，避免每次请求都探测 */
   async _loadModels() {
     if (!this.enabled || !this.fetchFn) {
       return { names: [], fetchedAt: Date.now(), ok: false };
@@ -50,7 +51,7 @@ class OllamaClient {
     let ok = false;
     let names = [];
     try {
-      const res = await this._fetchPs();
+      const res = await this._fetchTags();
       ok = res.ok;
       if (ok) {
         const data = await res.json();
