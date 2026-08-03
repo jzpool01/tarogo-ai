@@ -1,0 +1,13 @@
+{
+  "name": "tarogo-ai-example",
+  "private": true,
+  "version": "1.0.0",
+  "description": "TarogoAI SDK 使用示例",
+  "scripts": {
+    "hello": "node hello.js",
+    "streaming": "node streaming.js"
+  },
+  "dependencies": {
+    "tarogo-ai": "^1.0.0"
+  }
+}
